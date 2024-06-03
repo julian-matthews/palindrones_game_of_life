@@ -1,5 +1,5 @@
 %% PALINDRONE'S GAME OF LIFE: colourise
-% Resize the board and add border
+% Assign RGB colours using array indexing.
 
 function the_image = colourise( the_board, colour )
 
