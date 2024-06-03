@@ -4,18 +4,18 @@
 % Seed RNG
 clearvars;
 
-% rng(1337,'twister');
+rng(1337,'twister');
 
 take_screenshot = false;
 
 % Generative properties
 how_many_frames     = 150;
 frames_per_second   = 24;
-type_of_game        = 'picture'; % 'picture'
+type_of_game        = 'picture'; % 'picture' 'random'
 cell_size           = 10;
 border_size         = 0;
 blank_frames        = 10;
-direction           = 'reverse'; % 'forward'
+direction           = 'reverse'; % 'forward' 'reverse'
 
 switch type_of_game
     case 'random'
@@ -70,7 +70,7 @@ switch type_of_game
             dimensions(1)/cell_size, dimensions(2)/cell_size);
         
         % Add X% random noise 
-        noise_percent   = .01;
+        noise_percent   = .00001;
         
         small_dims = dimensions ./ cell_size;
         
