@@ -9,7 +9,7 @@ clearvars;
 take_screenshot = false;
 
 % Generative properties
-how_many_frames     = 100;
+how_many_frames     = 150;
 frames_per_second   = 24;
 type_of_game        = 'random'; % 'picture'
 cell_size           = 10;

@@ -4,7 +4,7 @@
 function the_new_board = generate_board( the_board, cell_size )
 
 % Border size
-border_size = 2;
+border_size = 1;
 
 % Resize by factor of 'cell_size'
 replicate_matrix = ones(cell_size, cell_size);
