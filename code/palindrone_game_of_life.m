@@ -6,6 +6,8 @@ clearvars;
 
 % rng(1337,'twister');
 
+take_screenshot = false;
+
 % Generative properties
 how_many_frames     = 100;
 frames_per_second   = 24;
@@ -89,6 +91,13 @@ for the_frame = 1:how_many_frames
     % Draw & Flip texture
     Screen('DrawTexture', cfg.win, the_texture);
     Screen('Flip',cfg.win);
+    
+    % Save screenshot
+    if take_screenshot
+        the_screen = Screen('GetImage',cfg.win); %#ok<*UNRCH>
+        the_title = sprintf('frametime_%s',datestr(now,'HHMMSSFFF'));
+        imwrite(the_screen,['../images/' the_title '.png']);
+    end
     
     % Close texture
     Screen('Close',the_texture);
