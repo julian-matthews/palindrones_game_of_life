@@ -7,7 +7,7 @@ function the_image = colourise( the_board, colour )
 the_image = zeros(size(the_board, 1), size(the_board, 2), 3);
 
 % Assign colors based on the values in the_board
-for k = 1:3
+for k = 1:size(colour,1)
     % Create a mask for each value
     mask = (the_board == k);
     % Assign the corresponding color to the mask

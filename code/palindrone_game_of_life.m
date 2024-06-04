@@ -4,14 +4,14 @@
 % Seed RNG
 clearvars;
 
-rng(303606,'twister');
+% rng(303606,'twister');
 
 % Options
 take_screenshot     = false;
 take_video          = true;
 
 % Generative properties
-how_many_seconds    = 8;
+how_many_seconds    = 360;
 frames_per_second   = 24;
 type_of_game        = 'combo'; % 'picture' 'random' 'combo'
 cell_size           = 10;
@@ -19,10 +19,14 @@ border_size         = 0;
 blank_frames        = 1;
 direction           = 'forward'; % 'forward' 'reverse'
 
+% The movie
+moviename = 'screen_recording.avi';
+
 % Determine the colours
-colour(1,:) = [36,30,3]; % Dark brown
+colour(1,:) = [254, 104, 51]; % [36,30,3]; % Dark brown
 colour(2,:) = [255, 247, 210]; % Cream
 colour(3,:) = [254, 104, 51]; % Ochre
+colour(4,:) =  [36,30,3];
 
 % Determine frame number
 how_many_frames     = how_many_seconds * frames_per_second;
@@ -60,7 +64,7 @@ switch type_of_game
         % Apply the block processing function to downsize the matrix
         image_board = blockproc(the_foundation(:,:,3), block_size, mean_filter);
         
-        image_board(image_board == 0)   = 1;
+        image_board(image_board == 0)   = 4;
         image_board(image_board == 210) = 2;
         image_board(image_board == 51)  = 3;
         
@@ -99,17 +103,18 @@ switch type_of_game
         % Apply the block processing function to downsize the matrix
         image_board = blockproc(the_foundation(:,:,3), block_size, mean_filter);
         
-        image_board(image_board == 0)   = 1;
+        image_board(image_board == 0)   = 4; % 1;
         image_board(image_board == 210) = 2;
         image_board(image_board == 51)  = 3;
         
         image_insert(image_board == 1)  = true;
         image_insert(image_board == 2)  = true;
         image_insert(image_board == 3)  = false;
+        image_insert(image_board == 4)  = true;
         
         % Populate board
         the_board   = randi(...
-            size(colour,1),...
+            3, ... % size(colour,1),...
             dimensions(1)/cell_size, dimensions(2)/cell_size);
         
 end
@@ -131,12 +136,16 @@ for the_frame = 1:how_many_frames
     
     switch type_of_game
         case 'combo'
+            the_OG = the_board;
+            
             % Insert the central image
             the_board(image_insert) = image_board(image_insert);
     end
     
     % Resize
-    the_vision  = generate_board(the_board,cell_size,border_size);
+    % the_vision  = generate_board(the_board,cell_size,border_size);
+    
+    the_vision = the_board;
     
     % Recolour
     the_image   = colourise(the_vision, colour);
@@ -147,6 +156,11 @@ for the_frame = 1:how_many_frames
             the_array{the_frame} = the_image;
         case 'reverse'
             the_array{how_many_frames - the_frame + 1} = the_image;
+    end
+    
+    switch type_of_game
+        case 'combo'
+             the_board = the_OG;
     end
     
     fprintf('%3.0d / %3.0d\n',the_frame, how_many_frames);
@@ -167,15 +181,16 @@ clear PsychHID;
 % Record screen
 if take_video
        
-    if exist('screen_recording.mp4', 'file')
-        delete('screen_recording.mp4');
-        warning('%s existed already! Will overwrite it...', 'screen_recording.mp4');
+    if exist(moviename, 'file')
+        delete(moviename);
+        warning('%s existed already! Will overwrite it...', moviename);
     end
        
     % Give it a moment to catch up
-    WaitSecs('YieldSecs', 2);
+    WaitSecs('YieldSecs', 1);
     
-    Screen('CreateMovie', cfg.win, 'screen_recording.mp4',[],[],frames_per_second);
+    the_movie = Screen('CreateMovie', cfg.win, moviename,[],[], ...
+        frames_per_second, ':CodecType=theoraenc');
     
 end
 
@@ -192,7 +207,7 @@ for the_frame = 1:how_many_frames
     t_scheduled = t_prev + (1/frames_per_second); 
     
     % Draw texture
-    Screen('DrawTexture', cfg.win, the_texture);
+    Screen('DrawTexture', cfg.win, the_texture,[],win_rect,[],0);
     
     % Flip precisely
     t_prev = Screen('Flip',cfg.win, t_scheduled, 0);
@@ -211,12 +226,12 @@ for the_frame = 1:how_many_frames
     
 end
 
-WaitSecs(2);
+WaitSecs(1);
 
 %% CLOSE WINDOW
 
 if take_video
-    Screen('FinalizeMovie', 'screen_recording.mp4');
+    Screen('FinalizeMovie', the_movie);
 end
 
 sca;
