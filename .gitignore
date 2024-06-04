@@ -32,4 +32,4 @@
 *.app
 *.m~
 .DS_Store
-images/
+screenshot/

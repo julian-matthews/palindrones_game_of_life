@@ -156,7 +156,7 @@ end
 
 clear PsychHID;
 
-Screen('Preference', 'SkipSyncTests', 1);
+% Screen('Preference', 'SkipSyncTests', 1);
 
 [cfg.win, win_rect] = Screen('OpenWindow', 0, [0,0,0], ...
     [0,0,dimensions(2),dimensions(1)], [], 2);
@@ -201,7 +201,7 @@ for the_frame = 1:how_many_frames
     if take_screenshot
         the_screen = Screen('GetImage',cfg.win); %#ok<*UNRCH>
         the_title = sprintf('frametime_%s',datestr(now,'HHMMSSFFF'));
-        imwrite(the_screen,['../images/' the_title '.png']);
+        imwrite(the_screen,['../screenshot/' the_title '.png']);
     elseif take_video
         Screen('AddFrameToMovie', cfg.win);
     end
