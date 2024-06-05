@@ -4,7 +4,7 @@
 % Seed RNG
 clearvars;
 
-rng(606,'twister');
+rng(24681,'twister');
 
 % Options
 take_screenshot     = false;
@@ -13,27 +13,34 @@ take_video          = true;
 % Generative properties
 how_many_seconds    = 400;
 frames_per_second   = 30;
-type_of_game        = 'combo'; % 'picture' 'random' 'combo' 'noise'
+type_of_game        = 'random'; % 'picture' 'random' 'combo' 'noise'
 cell_size           = 10;
 border_size         = 0;
 blank_frames        = 1;
 direction           = 'forward'; % 'forward' 'reverse'
+how_many_noise_imgs = 12;
 
 % The movie
 moviename = 'screen_recording.mov';
+the_image = 'palindrone_youtube.png';
 
 % Determine the colours
-colour(1,:) = [254, 104, 51]; % [36,30,3]; % Dark brown
-colour(2,:) = [255, 247, 210]; % Cream
-colour(3,:) = [254, 104, 51]; % Ochre
-colour(4,:) = [36,30,3]; % Dark brown
+colour(1,:) = [0, 76, 156]; % main blue
+colour(2,:) = [0, 86, 166]; % lighter blue
+colour(3,:) = [0, 95, 176]; % medium blue
+
+% colour(1,:) = [254, 114, 61]; % [254, 104, 51]; % [36,30,3]; % Dark brown
+% colour(2,:) = [254, 128, 83]; % [255, 247, 210]; % Cream
+% colour(3,:) = [254, 104, 51]; % Ochre
+% colour(4,:) = [36,30,3]; % Dark brown
+% colour(5,:) = [255, 247, 210]; % Cream
 
 noise_colour(1,:) = [36,30,3]; % Dark brown
 noise_colour(2,:) = [255, 247, 210]; % Cream
 noise_colour(3,:) = [254, 104, 51]; % Ochre
-noise_colour(4,:) = [254, 149, 113]; % Lightest ochre
+noise_colour(4,:) = [254, 104, 51]; % [254, 149, 113]; % Lightest ochre
 noise_colour(5,:) = [254, 128, 83]; % Medium ochre
-noise_colour(6,:) = [254, 114, 61]; % Close ochre
+noise_colour(6,:) = [254, 104, 51]; % [254, 114, 61]; % Close ochre
 
 % Determine frame number
 how_many_frames = how_many_seconds * frames_per_second;
@@ -57,7 +64,7 @@ switch type_of_game
         
     case 'picture'
         % Load the picture
-        the_foundation  = imread('../images/palindrone_youtube.png');
+        the_foundation  = imread(['../images/', the_image]);
         
         % Determine the dimensions
         dimensions      = [size(the_foundation,1),size(the_foundation,2)];
@@ -96,7 +103,7 @@ switch type_of_game
         
     case 'combo'
         % Load the picture
-        the_foundation  = imread('../images/palindrone_youtube.png');
+        the_foundation  = imread(['../images/',the_image]); 
         
         % Determine the dimensions
         dimensions      = [size(the_foundation,1),size(the_foundation,2)];
@@ -111,13 +118,14 @@ switch type_of_game
         image_board = blockproc(the_foundation(:,:,3), block_size, mean_filter);
         
         image_board(image_board == 0)   = 4; % 1;
-        image_board(image_board == 210) = 2;
+        image_board(image_board == 210) = 5; % 2;
         image_board(image_board == 51)  = 3;
         
         image_insert(image_board == 1)  = true;
         image_insert(image_board == 2)  = true;
         image_insert(image_board == 3)  = false;
         image_insert(image_board == 4)  = true;
+        image_insert(image_board == 5)  = true;
         
         % Populate board
         the_board   = randi(...
@@ -126,7 +134,7 @@ switch type_of_game
         
     case 'noise'
         % Load the picture
-        the_foundation  = imread('../images/palindrone_youtube.png');
+        the_foundation  = imread(['../images/',the_image]); 
         
         % Determine the dimensions
         dimensions      = [size(the_foundation,1),size(the_foundation,2)];
@@ -148,11 +156,18 @@ switch type_of_game
         image_insert(image_board == 2)  = true;
         image_insert(image_board == 3)  = false;
         
-        % Populate board
-        the_board   = randi(...
-            [3,6], ...
-            dimensions(1)/cell_size, dimensions(2)/cell_size);
+        % Generate several but not infinite boards
+        some_boards = cell(1,how_many_noise_imgs);
         
+        for iteration = 1:how_many_noise_imgs
+            some_boards{iteration} =  randi(...
+                [3,6], ...
+                dimensions(1)/cell_size, dimensions(2)/cell_size);
+        end
+        
+        % Populate board
+        the_draw    = randi(how_many_noise_imgs);
+        the_board   = some_boards{the_draw};
         
 end
 
@@ -169,9 +184,18 @@ for the_frame = 1:how_many_frames
     % Evolve the board
     switch type_of_game
         case 'noise'
-            the_board = randi(...
-                [3,6], ...
-                dimensions(1)/cell_size, dimensions(2)/cell_size);
+            
+            while true
+                prev_draw = the_draw;
+                the_draw = randi(how_many_noise_imgs);
+                
+                if ~isequal(prev_draw, the_draw)
+                    break
+                end
+            end
+            
+            the_board = some_boards{the_draw};
+            
         otherwise
             if the_frame > blank_frames
                 the_board   = evolve_life(the_board);
@@ -239,7 +263,7 @@ if take_video
     
     the_movie = Screen('CreateMovie', cfg.win, moviename,[],[], ...
         frames_per_second, ...
-        ':CodecSettings=EncodingQuality=0.9 Profile=2'); % ':CodecSettings=Videoquality=0.01 Profile=2'); % ':CodecType=theoraenc');
+        ':CodecSettings=EncodingQuality=1.0 Profile=2'); % ':CodecSettings=Videoquality=0.01 Profile=2'); % ':CodecType=theoraenc');
     
 end
 
