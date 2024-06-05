@@ -4,32 +4,39 @@
 % Seed RNG
 clearvars;
 
-% rng(303606,'twister');
+rng(606,'twister');
 
 % Options
 take_screenshot     = false;
 take_video          = true;
 
 % Generative properties
-how_many_seconds    = 360;
-frames_per_second   = 24;
-type_of_game        = 'combo'; % 'picture' 'random' 'combo'
+how_many_seconds    = 400;
+frames_per_second   = 30;
+type_of_game        = 'combo'; % 'picture' 'random' 'combo' 'noise'
 cell_size           = 10;
 border_size         = 0;
 blank_frames        = 1;
 direction           = 'forward'; % 'forward' 'reverse'
 
 % The movie
-moviename = 'screen_recording.avi';
+moviename = 'screen_recording.mov';
 
 % Determine the colours
 colour(1,:) = [254, 104, 51]; % [36,30,3]; % Dark brown
 colour(2,:) = [255, 247, 210]; % Cream
 colour(3,:) = [254, 104, 51]; % Ochre
-colour(4,:) =  [36,30,3];
+colour(4,:) = [36,30,3]; % Dark brown
+
+noise_colour(1,:) = [36,30,3]; % Dark brown
+noise_colour(2,:) = [255, 247, 210]; % Cream
+noise_colour(3,:) = [254, 104, 51]; % Ochre
+noise_colour(4,:) = [254, 149, 113]; % Lightest ochre
+noise_colour(5,:) = [254, 128, 83]; % Medium ochre
+noise_colour(6,:) = [254, 114, 61]; % Close ochre
 
 % Determine frame number
-how_many_frames     = how_many_seconds * frames_per_second;
+how_many_frames = how_many_seconds * frames_per_second;
 
 switch type_of_game
     case 'random'
@@ -117,6 +124,36 @@ switch type_of_game
             3, ... % size(colour,1),...
             dimensions(1)/cell_size, dimensions(2)/cell_size);
         
+    case 'noise'
+        % Load the picture
+        the_foundation  = imread('../images/palindrone_youtube.png');
+        
+        % Determine the dimensions
+        dimensions      = [size(the_foundation,1),size(the_foundation,2)];
+              
+        % Define the block size
+        block_size  = [cell_size, cell_size];
+        
+        % Function to calculate the mean of each block
+        mean_filter = @(block_struct) mean2(block_struct.data);
+        
+        % Apply the block processing function to downsize the matrix
+        image_board = blockproc(the_foundation(:,:,3), block_size, mean_filter);
+        
+        image_board(image_board == 0)   = 1;
+        image_board(image_board == 210) = 2;
+        image_board(image_board == 51)  = 3;
+        
+        image_insert(image_board == 1)  = true;
+        image_insert(image_board == 2)  = true;
+        image_insert(image_board == 3)  = false;
+        
+        % Populate board
+        the_board   = randi(...
+            [3,6], ...
+            dimensions(1)/cell_size, dimensions(2)/cell_size);
+        
+        
 end
 
 %% GENERATE GAME OF LIFE
@@ -130,25 +167,36 @@ the_array = cell(1,how_many_frames);
 for the_frame = 1:how_many_frames
    
     % Evolve the board
-    if the_frame > blank_frames
-        the_board   = evolve_life(the_board);
+    switch type_of_game
+        case 'noise'
+            the_board = randi(...
+                [3,6], ...
+                dimensions(1)/cell_size, dimensions(2)/cell_size);
+        otherwise
+            if the_frame > blank_frames
+                the_board   = evolve_life(the_board);
+            end
     end
     
+    % Insert the central image
     switch type_of_game
-        case 'combo'
-            the_OG = the_board;
+        case {'combo','noise'}
+            the_OG = the_board; % Save original board
             
-            % Insert the central image
             the_board(image_insert) = image_board(image_insert);
     end
     
-    % Resize
+    % Resize & create border
     % the_vision  = generate_board(the_board,cell_size,border_size);
-    
     the_vision = the_board;
     
     % Recolour
-    the_image   = colourise(the_vision, colour);
+    switch type_of_game
+        case 'noise'
+            the_image = colourise(the_vision, noise_colour);
+        otherwise
+            the_image = colourise(the_vision, colour);
+    end
     
     % Save into array
     switch direction
@@ -163,14 +211,14 @@ for the_frame = 1:how_many_frames
              the_board = the_OG;
     end
     
-    fprintf('%3.0d / %3.0d\n',the_frame, how_many_frames);
+    fprintf('%4.0d / %4.0d\n',the_frame, how_many_frames);
 end
 
 %% START PSYCHTOOLBOX
 
 clear PsychHID;
 
-% Screen('Preference', 'SkipSyncTests', 1);
+Screen('Preference', 'SkipSyncTests', 1);
 
 [cfg.win, win_rect] = Screen('OpenWindow', 0, [0,0,0], ...
     [0,0,dimensions(2),dimensions(1)], [], 2);
@@ -190,7 +238,8 @@ if take_video
     WaitSecs('YieldSecs', 1);
     
     the_movie = Screen('CreateMovie', cfg.win, moviename,[],[], ...
-        frames_per_second, ':CodecType=theoraenc');
+        frames_per_second, ...
+        ':CodecSettings=EncodingQuality=0.9 Profile=2'); % ':CodecSettings=Videoquality=0.01 Profile=2'); % ':CodecType=theoraenc');
     
 end
 
