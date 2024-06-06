@@ -6,18 +6,19 @@ function the_new_board = evolve_life( the_board )
 % Get the size of the matrix
 [rows, cols] = size(the_board);
 
-% Initialize the next state matrix
+% Initialise the next state matrix
 the_new_board = the_board;
 
-% Define the neighbors' offsets for Moore neighborhood
-neighbor_offsets = [-1, -1; -1, 0; -1, 1; 0, -1; 0, 1; 1, -1; 1, 0; 1, 1];
+% Define the neighbours' offsets for Moore neighbourhood
+neighbour_offsets = [-1, -1; -1, 0; -1, 1; 0, -1; 0, 1; 1, -1; 1, 0; 1, 1];
 
 % Loop through each cell in the matrix
 for i = 1:rows
     for j = 1:cols
         % Get the current cell value
         current_value = the_board(i, j);
-        % Determine the value that beats the current cell value
+        
+	% Determine the value that beats the current cell value
         if current_value == 1
             beaten_by = 2;  % Paper beats rock
         elseif current_value == 2
@@ -26,20 +27,23 @@ for i = 1:rows
             beaten_by = 1;  % Rock beats scissors
         end
         
-        % Count the number of neighbors that beat the current cell
-        beat_count = 0;
-        for k = 1:size(neighbor_offsets, 1)
-            neighbor_row = i + neighbor_offsets(k, 1);
-            neighbor_col = j + neighbor_offsets(k, 2);
-            % Check if the neighbor is within the bounds of the matrix
-            if neighbor_row >= 1 && neighbor_row <= rows && neighbor_col >= 1 && neighbor_col <= cols
-                if the_board(neighbor_row, neighbor_col) == beaten_by
-                    beat_count = beat_count + 1;
-                end
-            end
+        % Count the number of neighbours that beat the current cell
+        
+	beat_count = 0;
+        for k = 1:size(neighbour_offsets, 1)
+            
+		neighbour_row = i + neighbour_offsets(k, 1);
+            	neighbour_col = j + neighbour_offsets(k, 2);
+            
+		% Check if the neighbour is within the bounds of the matrix
+            	if neighbour_row >= 1 && neighbour_row <= rows && neighbour_col >= 1 && neighbour_col <= cols
+                	if the_board(neighbour_row, neighbour_col) == beaten_by
+                    		beat_count = beat_count + 1;
+                	end
+            	end
         end
         
-        % Update the cell value if it has more than 2 neighbors that beat it
+        % Update the cell value if it has more than 2 neighbours that beat it
         if beat_count > 2
             the_new_board(i, j) = beaten_by;
         end
